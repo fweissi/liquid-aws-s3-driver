@@ -46,12 +46,12 @@ struct LiquidAwsS3Storage: FileStorage {
     /// Uploads a file using a key and a data object returning the resolved URL of the uploaded file
     /// https://docs.aws.amazon.com/general/latest/gr/s3.html
     func upload(key: String, data: Data) -> EventLoopFuture<String> {
-        s3.putObject(S3.PutObjectRequest(acl: .publicRead, body: .data(data), bucket: bucket, contentLength: Int64(data.count), key: key)).map { _ in resolve(key: key) }
+        s3.putObject(S3.PutObjectRequest(acl: .bucketOwnerFullControl, body: .data(data), bucket: bucket, contentLength: Int64(data.count), key: key)).map { _ in resolve(key: key) }
     }
 
     /// Create a directory structure for a given key
     func createDirectory(key: String) -> EventLoopFuture<Void> {
-        s3.putObject(S3.PutObjectRequest(acl: .publicRead, bucket: bucket, contentLength: 0, key: key)).map { _ in }
+        s3.putObject(S3.PutObjectRequest(acl: .bucketOwnerFullControl, bucket: bucket, contentLength: 0, key: key)).map { _ in }
     }
 
     /// List objects under a given key
@@ -69,7 +69,7 @@ struct LiquidAwsS3Storage: FileStorage {
             guard exists else {
                 return s3.eventLoopGroup.next().makeFailedFuture(LiquidError.keyNotExists)
             }
-            return s3.copyObject(S3.CopyObjectRequest(acl: .publicRead, bucket: bucket, copySource: bucket + "/" + source, key: destination)).map { _ in resolve(key: destination) }
+            return s3.copyObject(S3.CopyObjectRequest(acl: .bucketOwnerFullControl, bucket: bucket, copySource: bucket + "/" + source, key: destination)).map { _ in resolve(key: destination) }
         }
     }
     
